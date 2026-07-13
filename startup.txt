@@ -1,0 +1,11 @@
+cd backend
+Linux / macOS
+    source .venv/bin/activate
+
+Windows
+    .venv\Scripts\activate
+
+uvicorn app.main:app --reload
+
+cd frontend 
+npm run dev    
