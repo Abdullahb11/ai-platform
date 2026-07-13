@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI
 from dotenv import load_dotenv
 from app.api.health import router as health_router
+from app.api.chat import router as chat_router
 
 # Load environment variables
 load_dotenv()
@@ -15,3 +16,4 @@ app = FastAPI(
 
 # Include Routers
 app.include_router(health_router)
+app.include_router(chat_router)
