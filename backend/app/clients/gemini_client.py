@@ -1,5 +1,7 @@
 import os
+from typing import List, Dict
 from google import genai
+from google.genai import types
 
 class GeminiClient:
     """
@@ -16,13 +18,27 @@ class GeminiClient:
         # Initialize the Google Gen AI client
         self.client = genai.Client(api_key=api_key)
 
-    def generate_text(self, prompt: str) -> str:
+    def generate_text_from_history(self, history: List[Dict[str, str]]) -> str:
         """
-        Sends a prompt to the Gemini model and returns the generated text.
+        Sends the entire conversation history to the Gemini model and returns the generated text response.
         """
+        # Convert store history format to GenAI types
+        contents = []
+        for msg in history:
+            role = msg["role"]
+            content = msg["content"]
+            # Map role to expected SDK roles (user -> user, model/assistant -> model)
+            mapped_role = "model" if role in ("assistant", "model") else "user"
+            contents.append(
+                types.Content(
+                    role=mapped_role,
+                    parts=[types.Part.from_text(text=content)]
+                )
+            )
+
         response = self.client.models.generate_content(
             model=self.model_name,
-            contents=prompt
+            contents=contents
         )
         
         if not response.text:
