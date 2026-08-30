@@ -1,0 +1,6 @@
+-) if i press enter the msg isnt send
+-) once the msg is sent it stays in the box and the box is not empty
+-) the sidebar shows conversation 1 2 but it should show something like this conversation name like there should be a title for each conversation in the side bar
+-) the messages should be sorted by time
+-) the messages should be displayed in a way that it is easy to read
+-) the response should show as the user typing like it should come as a stream not all at once
