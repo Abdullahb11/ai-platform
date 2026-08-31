@@ -1,40 +1,73 @@
+import uuid
+from typing import Optional
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.clients.gemini_client import GeminiClient
-from app.stores.conversation_store import conversation_store
+from app.repositories.conversation_repository import ConversationRepository
+from app.repositories.message_repository import MessageRepository
 
 
 class AIService:
     """
     Business logic layer for AI services.
-    Coordinates AI tasks and manages conversation state via the store.
+    Coordinates conversation persistence, history retrieval, and Gemini requests.
     """
     def __init__(self):
         self.gemini_client = GeminiClient()
 
-    def get_chat_response(self, conversation_id: str, message: str) -> str:
+    async def get_chat_response(
+        self,
+        session: AsyncSession,
+        message: str,
+        conversation_id: Optional[str] = None,
+    ) -> dict:
         """
-        Receives a conversation_id and user message.
-        Retrieves that conversation's history, appends the user message,
-        sends the full history to Gemini, appends the assistant response,
-        and returns the response text.
+        Orchestrates the full chat flow:
+        1. Resolve or create conversation
+        2. Load existing history
+        3. Persist user message
+        4. Send history to Gemini
+        5. Persist assistant response
+        6. Return response + conversation_id
 
-        Raises ValueError if the conversation_id does not exist.
+        Transaction behavior:
+        - User message is committed before calling Gemini.
+        - If Gemini fails, the user message remains (it was actually sent).
+        - No fake assistant message is created on Gemini failure.
         """
-        # 1. Verify the conversation exists
-        history = conversation_store.get_history(conversation_id)
-        if history is None:
-            raise ValueError(f"Conversation '{conversation_id}' not found")
+        # 1. Resolve or create conversation
+        if conversation_id:
+            try:
+                conv_uuid = uuid.UUID(conversation_id)
+            except ValueError:
+                raise ValueError(f"Invalid conversation_id format: '{conversation_id}'")
 
-        # 2. Append the user message to the conversation
-        conversation_store.add_message(conversation_id, role="user", content=message)
+            conversation = await ConversationRepository.get_by_id(session, conv_uuid)
+            if conversation is None:
+                raise ValueError(f"Conversation '{conversation_id}' not found")
+        else:
+            conversation = await ConversationRepository.create(session)
 
-        # 3. Re-fetch history (now includes the new user message)
-        history = conversation_store.get_history(conversation_id)
+        # 2. Load existing messages for history
+        existing_messages = await MessageRepository.get_by_conversation(session, conversation.id)
+        history = [{"role": msg.role, "content": msg.content} for msg in existing_messages]
 
-        # 4. Send the entire conversation history to Gemini Client
+        # 3. Persist user message and commit
+        await MessageRepository.create(session, conversation.id, "user", message)
+        await ConversationRepository.touch(session, conversation.id)
+        await session.commit()
+
+        # 4. Add user message to history for Gemini
+        history.append({"role": "user", "content": message})
+
+        # 5. Call Gemini with full conversation history
         assistant_response = self.gemini_client.generate_text_from_history(history)
 
-        # 5. Append the assistant response to the same conversation
-        conversation_store.add_message(conversation_id, role="model", content=assistant_response)
+        # 6. Persist assistant response and commit
+        await MessageRepository.create(session, conversation.id, "assistant", assistant_response)
+        await ConversationRepository.touch(session, conversation.id)
+        await session.commit()
 
-        # 6. Return only the latest response text
-        return assistant_response
+        return {
+            "response": assistant_response,
+            "conversation_id": str(conversation.id),
+        }

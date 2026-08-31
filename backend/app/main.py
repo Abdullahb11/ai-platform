@@ -1,19 +1,31 @@
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from app.api.health import router as health_router
 from app.api.chat import router as chat_router
 from app.api.conversations import router as conversations_router
+# pyrefly: ignore [missing-import]
+from app.db.database import verify_db_connection
 
 # Load environment variables
 load_dotenv()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Verify database connection on startup
+    await verify_db_connection()
+    yield
+
 
 # Initialize FastAPI App
 app = FastAPI(
     title="AI Platform API",
     version="0.1.0",
     description="Backend API for the AI Platform",
+    lifespan=lifespan,
 )
 
 # Configure CORS Middleware

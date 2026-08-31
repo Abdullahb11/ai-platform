@@ -90,7 +90,20 @@ body {
   flex: 1;
 }
 
+.conversation-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 8px;
+}
+
+.conversation-row.active {
+  background: rgba(168, 85, 247, 0.15);
+}
+
 .conversation-item {
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-sans);
   font-size: 0.85rem;
   font-weight: 400;
@@ -101,6 +114,9 @@ body {
   background: transparent;
   cursor: pointer;
   text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 
@@ -113,6 +129,71 @@ body {
   background: rgba(168, 85, 247, 0.15);
   color: var(--text-primary);
   font-weight: 500;
+}
+
+.conversation-row.active .conversation-item {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.conversation-actions {
+  display: flex;
+  gap: 0.15rem;
+  padding-right: 0.35rem;
+}
+
+.icon-action,
+.sidebar-action {
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  cursor: pointer;
+  padding: 0.3rem;
+}
+
+.icon-action:hover:not(:disabled),
+.sidebar-action:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.delete-action:hover:not(:disabled) {
+  color: #fca5a5;
+}
+
+.icon-action:disabled,
+.sidebar-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.rename-form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem;
+}
+
+.rename-input {
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--accent-purple);
+  border-radius: 6px;
+  background: rgba(10, 8, 15, 0.75);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.8rem;
+  outline: none;
+  padding: 0.4rem 0.5rem;
+}
+
+.rename-actions {
+  display: flex;
+  gap: 0.25rem;
 }
 
 .no-conversations {
@@ -197,7 +278,8 @@ h1.title {
   color: var(--accent-blue);
 }
 
-.message.model .message-role {
+.message.model .message-role,
+.message.assistant .message-role {
   color: var(--accent-purple);
 }
 
@@ -217,7 +299,8 @@ h1.title {
   border-color: rgba(59, 130, 246, 0.12);
 }
 
-.message.model .message-content {
+.message.model .message-content,
+.message.assistant .message-content {
   background: rgba(168, 85, 247, 0.04);
   border-color: rgba(168, 85, 247, 0.1);
 }

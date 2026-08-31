@@ -1,0 +1,2 @@
+password = abdullah
+port = 5432
