@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.repositories.conversation_repository import ConversationRepository
 from app.repositories.message_repository import MessageRepository
+from app.repositories.context_snapshot_repository import ContextSnapshotRepository
 from app.schemas.conversation import (
     ConversationCreate,
     ConversationListResponse,
@@ -17,6 +18,7 @@ from app.schemas.conversation import (
     ConversationUpdate,
 )
 from app.schemas.message import MessageListResponse
+from app.schemas.context_snapshot import ContextHistoryResponse, ContextSnapshotResponse
 
 router = APIRouter(prefix="/conversations", tags=["Conversations"])
 
@@ -146,3 +148,23 @@ async def delete_conversation(
     conversation = await _get_conversation_or_404(session, conversation_id)
     await ConversationRepository.delete(session, conversation)
     await session.commit()
+
+
+@router.get("/{conversation_id}/context", response_model=ContextHistoryResponse)
+async def get_conversation_context(
+    conversation_id: uuid.UUID,
+    session: AsyncSession = Depends(get_db),
+):
+    """
+    Return the context snapshot history for a conversation.
+    Provides the latest context status and all previous snapshots for the
+    context inspection panel. Used on page load / conversation switch so the
+    frontend does not need to call Gemini count_tokens separately.
+    """
+    await _get_conversation_or_404(session, conversation_id)
+    snapshots = await ContextSnapshotRepository.list_by_conversation(session, conversation_id)
+    latest = snapshots[-1] if snapshots else None
+    return ContextHistoryResponse(
+        latest=ContextSnapshotResponse.model_validate(latest) if latest else None,
+        snapshots=[ContextSnapshotResponse.model_validate(s) for s in snapshots],
+    )

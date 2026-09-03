@@ -4,3 +4,5 @@
 -) the messages should be displayed in a way that it is easy to read
 -) the response should show as the user typing like it should come as a stream not all at once
 -) if i open a conversation it should be scrolled to the bottom 
+-) the msgs are not properly visible as text is light 
+-) it shows 0 messages under last request context

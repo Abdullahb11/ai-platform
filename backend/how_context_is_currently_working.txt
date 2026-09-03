@@ -1,0 +1,178 @@
+Request 1
+
+You sent:
+
+You: hi
+
+That was:
+
+2 / 50 tokens
+
+Gemini replied:
+
+Hello! How can I help you today?
+
+Now current context became:
+
+12 / 50
+
+So after Request 1, active context was roughly:
+
+You: hi
+Gemini: Hello! How can I help you today?
+Request 2
+
+Then you sent:
+
+how are u doing today
+
+The request context now included the previous turn plus your new message:
+
+You: hi
+Gemini: Hello! How can I help you today?
+You: how are u doing today
+
+That came to:
+
+18 / 50
+
+Gemini replied with a longer answer.
+
+After adding that response:
+
+Current context = 45 / 50
+
+So at this point the active context still contained both turns:
+
+You: hi
+Gemini: Hello! ...
+
+You: how are u doing today
+Gemini: I'm doing great...
+
+It was almost full:
+
+45 / 50
+Request 3
+
+Now you sent:
+
+hi
+
+Your application first builds the candidate request:
+
+previous current context = 45 tokens
++
+new "hi" = 2 tokens
+
+Gemini's exact tokenization gives:
+
+47 / 50
+
+So it still fits.
+
+That’s why your panel says:
+
+Request 3
+Request: 47 / 50
+5 messages
+
+Those 5 messages were:
+
+1. You: hi
+2. Gemini: Hello! ...
+3. You: how are u doing today
+4. Gemini: I'm doing great...
+5. You: hi
+
+So nothing was removed before Request 3.
+
+Gemini actually received all the previous context.
+
+Then Gemini replied
+
+It responded:
+
+Hello again! Ready to get started...
+
+Now:
+
+47-token request
++
+new Gemini response
+>
+50
+
+So now the post-response current context overflowed.
+
+That is why Request 3 says:
+
+Cur truncated
+
+Not Req truncated.
+
+The selector then removed the oldest complete turns.
+
+First it would remove:
+
+You: hi
+Gemini: Hello! How can I help you today?
+
+If the remaining context was still over 50, it removed the next complete turn too:
+
+You: how are u doing today
+Gemini: I'm doing great...
+
+Eventually only this remained:
+
+You: hi
+Gemini: Hello again! Ready to get started...
+
+which is:
+
+29 / 50
+
+And that's exactly what your current-context panel shows.
+
+So the timeline is:
+
+REQUEST 1
+hi
+→ Gemini response
+→ current = 12/50
+
+then:
+
+REQUEST 2
+previous turn
++ how are u doing today
+→ 18/50
+
+Gemini responds
+→ current = 45/50
+
+then:
+
+REQUEST 3
+previous 45 tokens
++ hi
+→ 47/50 ✅
+
+Gemini responds
+→ now >50 ❌
+
+remove oldest complete turn
+still too big
+remove next oldest complete turn
+
+final current context:
+hi
++ latest Gemini response
+= 29/50
+
+
+
+
+so it will say request truncated if while sending the request the tokens were
+more than the context window and it will say cur truncated if after the request
+ the context overflows and it removes previous stuff

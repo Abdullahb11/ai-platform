@@ -25,3 +25,8 @@ class Conversation(Base):
     messages: Mapped[list["Message"]] = relationship(
         back_populates="conversation", cascade="all, delete-orphan"
     )
+    context_snapshots: Mapped[list["ContextSnapshot"]] = relationship(  # noqa: F821
+        back_populates="conversation",
+        cascade="all, delete-orphan",
+        foreign_keys="ContextSnapshot.conversation_id",
+    )
