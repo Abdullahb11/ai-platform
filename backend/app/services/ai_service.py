@@ -128,6 +128,10 @@ class AIService:
         await session.commit()
 
         # ── 8. Build bounded CURRENT CONTEXT (request context + assistant) ────
+        # select_current_context now protects the entire latest turn (user +
+        # assistant) and returns an empty BoundedContext if the turn exceeds the
+        # limit.  ValueError is no longer raised; only RuntimeError (from
+        # count_tokens failure) is possible.
         try:
             cur_ctx = select_current_context(
                 gemini_client=self.gemini_client,
@@ -136,9 +140,9 @@ class AIService:
                 assistant_message=assistant_response,
                 limit_tokens=limit_tokens,
             )
-        except (ValueError, RuntimeError) as exc:
+        except RuntimeError as exc:
             # Current context selection failure is non-fatal for the user's reply,
-            # but we cannot produce a valid snapshot. Log and surface in response.
+            # but we cannot produce a valid snapshot. Surface in response.
             cur_ctx = None
             cur_ctx_error = str(exc)
         else:

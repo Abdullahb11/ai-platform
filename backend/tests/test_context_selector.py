@@ -310,3 +310,143 @@ def test_assistant_response_pushes_current_context_over_limit():
     ids = [m["id"] for m in result.selected]
     assert "u1" not in ids
     assert "a1" not in ids
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Complete-turn invariant — current context must not contain partial turns
+# ════════════════════════════════════════════════════════════════════════════
+
+def test_current_context_oversized_turn_returns_empty():
+    """
+    Bug reproduction: user=23 + assistant=43 = 66 tokens, limit=50.
+    The ENTIRE turn must be excluded (empty context), not just the user message.
+    Previously this would leave the 43-token assistant message alone = broken turn.
+    """
+    # Single-message request context (just the user message, no history)
+    req_context = [{"id": "u1", "role": "user", "content": "My name is Abdullah."}]
+    # Initial count: user + assistant = 66 > 50
+    # After removing all non-protected → only protected turn remains → 66 > 50
+    # With allow_empty=True → empty context returned
+    client = make_client([66, 66])
+    result = select_current_context(
+        client, req_context, "a1", "Long response about name", limit_tokens=50
+    )
+    assert result.token_count == 0
+    assert result.message_count == 0
+    assert result.start_id is None
+    assert result.end_id is None
+    assert result.selected == []
+
+
+def test_current_context_complete_turn_fits():
+    """
+    Complete turn (user + assistant) fits within the limit → both messages remain.
+    """
+    req_context = [{"id": "u1", "role": "user", "content": "Hi"}]
+    # user + assistant = 30 tokens ≤ 50
+    client = make_client([30])
+    result = select_current_context(
+        client, req_context, "a1", "Hello!", limit_tokens=50
+    )
+    assert result.token_count == 30
+    assert result.message_count == 2
+    assert result.start_id == "u1"
+    assert result.end_id == "a1"
+    ids = [m["id"] for m in result.selected]
+    assert "u1" in ids
+    assert "a1" in ids
+
+
+def test_current_context_no_orphaned_assistant():
+    """
+    Verify the assistant message is NEVER left alone when its paired user
+    message has been removed.  With the fix, both are protected, so if the
+    pair doesn't fit, the result is empty — not just the assistant.
+    """
+    req_context = [{"id": "u1", "role": "user", "content": "Q"}]
+    # Total = 100 > 50; only protected remain → allow_empty → empty
+    client = make_client([100, 100])
+    result = select_current_context(
+        client, req_context, "a1", "Very long answer", limit_tokens=50
+    )
+    # Must NOT contain only the assistant message
+    assert not (result.message_count == 1 and result.end_id == "a1")
+    # Must be empty
+    assert result.message_count == 0
+    assert result.token_count == 0
+
+
+def test_request_after_oversized_turn_only_new_message():
+    """
+    After an oversized turn produced empty current context, the next request
+    should contain only the new user message (since no previous complete turn
+    fits within the limit).
+    """
+    # Full history: one previous turn that totals 66 tokens
+    history = [
+        {"id": "u1", "role": "user", "content": "My name is Abdullah."},
+        {"id": "a1", "role": "assistant", "content": "Long response about name"},
+    ]
+    # Phase 1: history + new user = 70 > 50; after removing history pair = 5
+    client = make_client([70, 5])
+    result = select_request_context(
+        client, history, "u2", "Hi", limit_tokens=50
+    )
+    assert result.token_count == 5
+    assert result.message_count == 1
+    assert result.start_id == "u2"
+    assert result.end_id == "u2"
+    ids = [m["id"] for m in result.selected]
+    assert "u1" not in ids
+    assert "a1" not in ids
+    assert "u2" in ids
+
+
+def test_current_context_with_history_oversized_newest_turn():
+    """
+    Multiple turns in history; the newest complete turn (user+assistant) exceeds
+    the limit.  All turns, including the oversized protected newest turn, should
+    result in an empty context.
+    """
+    req_context = make_history(("A", "B"), ("C", "D"))
+    req_context.append({"id": "u3", "role": "user", "content": "E"})
+    # Total = 200 > 50; after removing (A,B) pair = 170 > 50;
+    # after removing (C,D) pair = 130 > 50;
+    # only protected (u3, asst-3) remain = 130 > 50 → empty
+    client = make_client([200, 170, 130, 130])
+    result = select_current_context(
+        client, req_context, "asst-3", "F", limit_tokens=50
+    )
+    assert result.token_count == 0
+    assert result.message_count == 0
+    assert result.selected == []
+
+
+def test_bounded_context_allow_empty_returns_empty():
+    """
+    select_bounded_context with allow_empty=True returns empty BoundedContext
+    when protected messages alone exceed the limit.
+    """
+    msgs = [{"id": "p1", "role": "user", "content": "protected"}]
+    client = make_client([200, 200])
+    result = select_bounded_context(
+        client, msgs, protected_tail_ids={"p1"}, limit_tokens=50, allow_empty=True
+    )
+    assert result.token_count == 0
+    assert result.message_count == 0
+    assert result.start_id is None
+    assert result.end_id is None
+    assert result.selected == []
+
+
+def test_bounded_context_allow_empty_false_still_raises():
+    """
+    select_bounded_context with allow_empty=False (default) still raises
+    ValueError when protected messages exceed the limit.
+    """
+    msgs = [{"id": "p1", "role": "user", "content": "protected"}]
+    client = make_client([200, 200])
+    with pytest.raises(ValueError, match="exceed"):
+        select_bounded_context(
+            client, msgs, protected_tail_ids={"p1"}, limit_tokens=50
+        )

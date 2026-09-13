@@ -49,6 +49,7 @@ def select_bounded_context(
     messages: list[dict],
     protected_tail_ids: set[str],
     limit_tokens: int,
+    allow_empty: bool = False,
 ) -> BoundedContext:
     """
     Core selection primitive.
@@ -65,12 +66,18 @@ def select_bounded_context(
                             Typically {new_user_message_id} for request context
                             and {assistant_message_id} for current context.
         limit_tokens:       Maximum allowed token count.
+        allow_empty:        If True and the protected messages alone exceed the
+                            limit, return an empty BoundedContext instead of
+                            raising ValueError.  Used by select_current_context
+                            where an oversized turn simply means "no active
+                            context" rather than a user error.
 
     Returns:
         BoundedContext with the selected slice, its token count, and boundary ids.
 
     Raises:
-        ValueError:   If protected messages alone exceed limit_tokens.
+        ValueError:   If protected messages alone exceed limit_tokens
+                      (only when allow_empty is False).
         RuntimeError: If the Gemini count_tokens API call fails.
     """
     candidate = list(messages)  # never mutate the caller's list
@@ -99,6 +106,14 @@ def select_bounded_context(
 
         if removable_start is None:
             # Nothing left to remove — protected messages alone exceed the limit
+            if allow_empty:
+                return BoundedContext(
+                    selected=[],
+                    token_count=0,
+                    start_id=None,
+                    end_id=None,
+                    message_count=0,
+                )
             protected_contents = gemini_client.build_contents(candidate)
             protected_count = gemini_client.count_tokens(protected_contents)
             raise ValueError(
@@ -173,12 +188,12 @@ def select_current_context(
 
     request context + assistant response → BoundedContext <= limit_tokens
 
-    The assistant response is ALWAYS the last item and is protected from removal.
-    Oldest messages are removed from the request context (the earlier portion)
-    using the same oldest-first pair removal strategy.
+    The latest complete turn (the user message that triggered this response +
+    the assistant response) is protected as a unit.  If the complete turn alone
+    exceeds the limit, an empty BoundedContext is returned — no partial turns
+    are ever kept in the active context.
 
     Raises:
-        ValueError:   If the assistant message alone exceeds limit_tokens (extremely rare).
         RuntimeError: If count_tokens fails.
     """
     assistant_entry = {
@@ -187,9 +202,20 @@ def select_current_context(
         "content": assistant_message,
     }
     candidate = request_context + [assistant_entry]
+
+    # Protect the entire latest turn: the user message (last item in
+    # request_context) + the assistant response.  This ensures truncation
+    # can never leave an orphaned assistant message without its user message.
+    protected = {assistant_message_id}
+    if request_context:
+        last_request_msg = request_context[-1]
+        if last_request_msg["role"] == "user" and last_request_msg.get("id"):
+            protected.add(last_request_msg["id"])
+
     return select_bounded_context(
         gemini_client=gemini_client,
         messages=candidate,
-        protected_tail_ids={assistant_message_id},
+        protected_tail_ids=protected,
         limit_tokens=limit_tokens,
+        allow_empty=True,
     )

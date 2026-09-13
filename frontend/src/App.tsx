@@ -679,7 +679,11 @@ function App() {
               {/* Messages in current context */}
               <div className="context-messages-list">
                 {currentContextMessages.length === 0 && currentMessageCount === 0 && (
-                  <p className="ctx-empty">Send a message to see the active context.</p>
+                  <p className="ctx-empty">
+                    {activeContextInfo?.snapshot_id
+                      ? 'The latest turn exceeded the context limit — no active context.'
+                      : 'Send a message to see the active context.'}
+                  </p>
                 )}
                 {currentContextMessages.length === 0 && currentMessageCount > 0 && (
                   <p className="ctx-empty">
