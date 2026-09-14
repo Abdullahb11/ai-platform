@@ -1,0 +1,1 @@
+- [Imported dependency snapshots](imported-dependency-snapshots.md) — zipped Node projects may need executable bits and a reinstall to restore optional native packages.

@@ -1,0 +1,168 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   Theme System — Color palettes mapped to semantic CSS variables.
+   Applied via [data-theme] attribute on <html>.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Palette 1 — Deep Space / Lavender (default) ──────────────────────────── */
+/* Source: #020202, #0d324d, #7f5a83, #a188a6, #9da2ab                        */
+
+:root,
+[data-theme="deep-space"] {
+  --t-bg: #020202;
+  --t-bg-gradient: radial-gradient(circle at 50% 0%, #0d324d 0%, #020202 100%);
+  --t-surface: rgba(13, 50, 77, 0.4);
+  --t-surface-hover: rgba(13, 50, 77, 0.6);
+  --t-surface-alt: rgba(2, 2, 2, 0.5);
+  --t-primary: #7f5a83;
+  --t-primary-rgb: 127, 90, 131;
+  --t-secondary: #0d324d;
+  --t-secondary-rgb: 13, 50, 77;
+  --t-text: #e0e2e6;
+  --t-text-secondary: #a188a6;
+  --t-text-muted: #9da2ab;
+  --t-border: rgba(127, 90, 131, 0.15);
+  --t-border-strong: rgba(127, 90, 131, 0.4);
+  --t-good: #22c55e;
+  --t-warn: #eab308;
+  --t-bad: #ef4444;
+  --t-good-rgb: 34, 197, 94;
+  --t-warn-rgb: 234, 179, 8;
+  --t-bad-rgb: 239, 68, 68;
+  --t-btn-gradient: linear-gradient(135deg, #7f5a83 0%, #0d324d 100%);
+  --t-btn-shadow: rgba(127, 90, 131, 0.4);
+  --t-btn-text: #ffffff;
+  --t-title-gradient: linear-gradient(135deg, #ffffff 30%, #7f5a83 100%);
+}
+
+/* ── Palette 2 — Mahogany / Almond ─────────────────────────────────────────── */
+/* Source: #050609, #f5d0c5, #d69f7e, #774936, #3c0000                        */
+
+[data-theme="mahogany"] {
+  --t-bg: #050609;
+  --t-bg-gradient: radial-gradient(circle at 50% 0%, #1a0808 0%, #050609 100%);
+  --t-surface: rgba(60, 0, 0, 0.35);
+  --t-surface-hover: rgba(60, 0, 0, 0.55);
+  --t-surface-alt: rgba(5, 6, 9, 0.5);
+  --t-primary: #d69f7e;
+  --t-primary-rgb: 214, 159, 126;
+  --t-secondary: #774936;
+  --t-secondary-rgb: 119, 73, 54;
+  --t-text: #f5d0c5;
+  --t-text-secondary: #d69f7e;
+  --t-text-muted: #9b7560;
+  --t-border: rgba(214, 159, 126, 0.15);
+  --t-border-strong: rgba(214, 159, 126, 0.4);
+  --t-good: #22c55e;
+  --t-warn: #eab308;
+  --t-bad: #ef4444;
+  --t-good-rgb: 34, 197, 94;
+  --t-warn-rgb: 234, 179, 8;
+  --t-bad-rgb: 239, 68, 68;
+  --t-btn-gradient: linear-gradient(135deg, #d69f7e 0%, #774936 100%);
+  --t-btn-shadow: rgba(214, 159, 126, 0.35);
+  --t-btn-text: #ffffff;
+  --t-title-gradient: linear-gradient(135deg, #f5d0c5 30%, #d69f7e 100%);
+}
+
+/* ── Palette 3 — Monochrome ────────────────────────────────────────────────── */
+/* Source: #000000, #66666e, #9999a1, #e6e6e9, #f4f4f6                        */
+
+[data-theme="monochrome"] {
+  --t-bg: #000000;
+  --t-bg-gradient: radial-gradient(circle at 50% 0%, #1a1a1c 0%, #000000 100%);
+  --t-surface: rgba(102, 102, 110, 0.18);
+  --t-surface-hover: rgba(102, 102, 110, 0.3);
+  --t-surface-alt: rgba(0, 0, 0, 0.5);
+  --t-primary: #9999a1;
+  --t-primary-rgb: 153, 153, 161;
+  --t-secondary: #66666e;
+  --t-secondary-rgb: 102, 102, 110;
+  --t-text: #f4f4f6;
+  --t-text-secondary: #e6e6e9;
+  --t-text-muted: #66666e;
+  --t-border: rgba(153, 153, 161, 0.15);
+  --t-border-strong: rgba(153, 153, 161, 0.4);
+  --t-good: #22c55e;
+  --t-warn: #eab308;
+  --t-bad: #ef4444;
+  --t-good-rgb: 34, 197, 94;
+  --t-warn-rgb: 234, 179, 8;
+  --t-bad-rgb: 239, 68, 68;
+  --t-btn-gradient: linear-gradient(135deg, #e6e6e9 0%, #9999a1 100%);
+  --t-btn-shadow: rgba(153, 153, 161, 0.3);
+  --t-btn-text: #000000;
+  --t-title-gradient: linear-gradient(135deg, #f4f4f6 30%, #9999a1 100%);
+}
+
+/* ── Palette 4 — Black / Coffee / Beige ────────────────────────────────────── */
+/* Source: #000000, #1F150C, #412D15, #E1DCC9                                  */
+
+[data-theme="coffee"] {
+  --t-bg: #000000;
+  --t-bg-gradient: radial-gradient(circle at 50% 0%, #1F150C 0%, #000000 100%);
+  --t-surface: rgba(31, 21, 12, 0.55);
+  --t-surface-hover: rgba(31, 21, 12, 0.8);
+  --t-surface-alt: rgba(0, 0, 0, 0.5);
+  --t-primary: #E1DCC9;
+  --t-primary-rgb: 225, 220, 201;
+  --t-secondary: #412D15;
+  --t-secondary-rgb: 65, 45, 21;
+  --t-text: #E1DCC9;
+  --t-text-secondary: rgba(225, 220, 201, 0.7);
+  --t-text-muted: #7a7668;
+  --t-border: rgba(225, 220, 201, 0.12);
+  --t-border-strong: rgba(225, 220, 201, 0.3);
+  --t-good: #22c55e;
+  --t-warn: #eab308;
+  --t-bad: #ef4444;
+  --t-good-rgb: 34, 197, 94;
+  --t-warn-rgb: 234, 179, 8;
+  --t-bad-rgb: 239, 68, 68;
+  --t-btn-gradient: #E1DCC9;
+  --t-btn-shadow: rgba(225, 220, 201, 0.25);
+  --t-btn-text: #1F150C;
+  --t-title-gradient: linear-gradient(135deg, #E1DCC9 30%, #7a7668 100%);
+}
+
+/* ── Palette Switcher ──────────────────────────────────────────────────────── */
+
+.palette-switcher {
+  position: fixed;
+  top: 0.75rem;
+  right: 1rem;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--t-text-secondary);
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.palette-switcher:hover {
+  border-color: var(--t-border-strong);
+  background: var(--t-surface-hover);
+  color: var(--t-text);
+}
+
+.palette-switcher:focus-visible {
+  outline: 2px solid var(--t-primary);
+  outline-offset: 2px;
+}
+
+.palette-icon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.palette-label {
+  letter-spacing: 0.02em;
+}
