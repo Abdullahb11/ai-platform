@@ -15,7 +15,7 @@ export function Navigation({ route, navigate }: NavigationProps) {
             <span />
             <span />
           </span>
-          <span className="brand-name">NEXUS<span>AI</span></span>
+          <span className="brand-name"><span></span></span>
         </button>
         <div className="nav-breadcrumbs">
           <button
