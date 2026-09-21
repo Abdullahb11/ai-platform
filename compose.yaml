@@ -1,0 +1,32 @@
+services:
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ai_platform
+      POSTGRES_USER: ai_platform_user
+      POSTGRES_PASSWORD: abdullah
+    ports:
+      - "5433:5432"
+    volumes:
+      - ai-platform-data:/var/lib/postgresql
+
+  backend:
+    image: ai-platform-backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ai_platform_user:abdullah@postgres:5432/ai_platform
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+  frontend:
+    image: ai-platform-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  ai-platform-data:
+    external: true
