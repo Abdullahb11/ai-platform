@@ -10,15 +10,23 @@ services:
       - "5433:5432"
     volumes:
       - ai-platform-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_platform_user -d ai_platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
+    build:
+      context: ./backend
     image: ai-platform-backend
     environment:
       DATABASE_URL: postgresql+asyncpg://ai_platform_user:abdullah@postgres:5432/ai_platform
     ports:
       - "8000:8000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   frontend:
     image: ai-platform-frontend
